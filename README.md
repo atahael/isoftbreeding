@@ -1,2 +1,2 @@
 # isoftbreeding
-A mobile app with flutter that helps u manage your breedings
+A mobile app with flutter that helps you manage your breedings
