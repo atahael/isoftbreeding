@@ -18,7 +18,6 @@ class AccueilScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion',
             onPressed: () {
-              // TODO: Implémenter la déconnexion réelle plus tard
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Déconnexion...")),
               );
@@ -47,24 +46,36 @@ class AccueilScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: [
-              _buildCard(context, Icons.pets, "Mes Animaux", '/animaux'),
-              _buildCard(context, Icons.vaccines, "Vaccins", '/vaccins'),
-              _buildCard(context, Icons.medication, "Traitements", '/traitements'),
-              _buildCard(context, Icons.monitor_heart, "Santé", '/sante'),
-              _buildCard(context, Icons.monitor_weight, "Poids", '/poids'),
-              _buildCard(context, Icons.child_friendly, "Naissances", '/naissances'),
-              _buildCard(context, Icons.calendar_month, "Calendrier", '/calendrier'),
-              _buildCard(context, Icons.bar_chart, "Statistiques", '/statistiques'),
-              _buildCard(context, Icons.person, "Profil", '/profil'),
-            ],
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            int crossAxisCount = 2;
+
+            if (constraints.maxWidth > 1200) {
+              crossAxisCount = 4;
+            } else if (constraints.maxWidth > 800) {
+              crossAxisCount = 3;
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GridView.count(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _buildCard(context, Icons.pets, "Mes Animaux", '/animaux'),
+                  _buildCard(context, Icons.vaccines, "Vaccins", '/vaccins'),
+                  _buildCard(context, Icons.medication, "Traitements", '/traitements'),
+                  _buildCard(context, Icons.monitor_heart, "Santé", '/sante'),
+                  _buildCard(context, Icons.monitor_weight, "Poids", '/poids'),
+                  _buildCard(context, Icons.child_friendly, "Naissances", '/naissances'),
+                  _buildCard(context, Icons.calendar_month, "Calendrier", '/calendrier'),
+                  _buildCard(context, Icons.bar_chart, "Statistiques", '/statistiques'),
+                  _buildCard(context, Icons.person, "Profil", '/profil'),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -75,8 +86,8 @@ class AccueilScreen extends StatelessWidget {
       leading: Icon(icon, color: Colors.green),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context); // ferme le drawer
-        Navigator.pushNamed(context, route); // navigue vers la page
+        Navigator.pop(context);
+        Navigator.pushNamed(context, route);
       },
     );
   }
@@ -84,19 +95,26 @@ class AccueilScreen extends StatelessWidget {
   Widget _buildCard(BuildContext context, IconData icon, String label, String route) {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, route); // navigue vers la page
+        Navigator.pushNamed(context, route);
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 3,
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 40, color: Colors.green),
-              const SizedBox(height: 10),
-              Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 40, color: Colors.green),
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
           ),
         ),
       ),
