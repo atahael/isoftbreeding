@@ -1,0 +1,2 @@
+D:/elevage_app/android/app/.cxx/Debug/a3eq6s66/x86_64/CMakeFiles/edit_cache.dir
+D:/elevage_app/android/app/.cxx/Debug/a3eq6s66/x86_64/CMakeFiles/rebuild_cache.dir

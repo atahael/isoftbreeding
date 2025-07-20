@@ -1,0 +1,1 @@
+ D:\\elevage_app\\.dart_tool\\flutter_build\\bb919f93e1873688e208e88217ebca55\\native_assets.json: 

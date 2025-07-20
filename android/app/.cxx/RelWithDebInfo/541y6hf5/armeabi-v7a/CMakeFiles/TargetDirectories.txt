@@ -1,0 +1,2 @@
+D:/elevage_app/android/app/.cxx/RelWithDebInfo/541y6hf5/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/elevage_app/android/app/.cxx/RelWithDebInfo/541y6hf5/armeabi-v7a/CMakeFiles/rebuild_cache.dir
