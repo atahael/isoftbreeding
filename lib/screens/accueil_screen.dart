@@ -34,7 +34,7 @@ class AccueilScreen extends StatelessWidget {
               child: Text("Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             _buildDrawerItem(context, Icons.pets, "Mes Animaux", '/animaux'),
-            _buildDrawerItem(context, Icons.vaccines, "Vaccins", '/vaccins'),
+            _buildDrawerItem(context, Icons.vaccines, "Vaccins", '/vaccins'), // modifié
             _buildDrawerItem(context, Icons.medication, "Traitements", '/traitements'),
             _buildDrawerItem(context, Icons.monitor_heart, "Suivi Santé", '/sante'),
             _buildDrawerItem(context, Icons.monitor_weight, "Suivi Poids", '/poids'),
@@ -49,7 +49,6 @@ class AccueilScreen extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             int crossAxisCount = 2;
-
             if (constraints.maxWidth > 1200) {
               crossAxisCount = 4;
             } else if (constraints.maxWidth > 800) {
@@ -64,7 +63,7 @@ class AccueilScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildCard(context, Icons.pets, "Mes Animaux", '/animaux'),
-                  _buildCard(context, Icons.vaccines, "Vaccins", '/vaccins'),
+                  _buildCard(context, Icons.vaccines, "Vaccins", '/vaccins'), // modifié
                   _buildCard(context, Icons.medication, "Traitements", '/traitements'),
                   _buildCard(context, Icons.monitor_heart, "Santé", '/sante'),
                   _buildCard(context, Icons.monitor_weight, "Poids", '/poids'),

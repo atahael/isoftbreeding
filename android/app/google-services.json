@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412319337584",
+    "project_id": "isoftbreeding-1c759",
+    "storage_bucket": "isoftbreeding-1c759.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412319337584:android:9d10b7e0a0af4d4e3cf8b5",
+        "android_client_info": {
+          "package_name": "com.isoftbreeding.appname"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC13T5xSmzrNpSpRIZsPT2p6rVbOCLTgyg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

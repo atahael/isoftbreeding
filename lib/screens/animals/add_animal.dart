@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -13,8 +15,8 @@ class AddAnimalScreen extends StatefulWidget {
 
 class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController nomController = TextEditingController();
-  final TextEditingController dateNaissanceController = TextEditingController();
+  final nomController = TextEditingController();
+  final dateNaissanceController = TextEditingController();
 
   File? _image;
   String? selectedEspece;
@@ -60,16 +62,30 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
       lastDate: now,
     );
     if (picked != null) {
-      selectedDateNaissance = picked;
-      dateNaissanceController.text =
-          "${picked.day}/${picked.month}/${picked.year}";
+      setState(() {
+        selectedDateNaissance = picked;
+        dateNaissanceController.text =
+            "${picked.day}/${picked.month}/${picked.year}";
+      });
     }
   }
 
   DateTime _calculateBirthdateFromAge(int years, int months) {
     final now = DateTime.now();
-    final approx = DateTime(now.year - years, now.month - months, now.day);
-    return approx;
+    return DateTime(now.year - years, now.month - months, now.day);
+  }
+
+  Future<void> _saveAnimalToFirestore() async {
+    final uuid = const Uuid().v4();
+
+    await FirebaseFirestore.instance.collection('animaux').doc(uuid).set({
+      'id': uuid,
+      'nom': nomController.text,
+      'espece': selectedEspece,
+      'sexe': selectedSexe,
+      'date_naissance': selectedDateNaissance?.toIso8601String(),
+      'created_at': DateTime.now().toIso8601String(),
+    });
   }
 
   @override
@@ -87,16 +103,21 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    // Choisir une image
                     GestureDetector(
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.green.shade100,
                         backgroundImage: _image != null ? FileImage(_image!) : null,
-                        child: _image == null ? const Icon(Icons.camera_alt, size: 32) : null,
+                        child: _image == null
+                            ? const Icon(Icons.camera_alt, size: 32)
+                            : null,
                       ),
                     ),
                     const SizedBox(height: 20),
+
+                    // Nom
                     TextFormField(
                       controller: nomController,
                       decoration: const InputDecoration(labelText: "Nom de l'animal"),
@@ -104,18 +125,24 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                           value!.isEmpty ? "Veuillez entrer un nom" : null,
                     ),
                     const SizedBox(height: 16),
+
+                    // Espèce
                     DropdownButtonFormField<String>(
                       value: selectedEspece,
                       decoration: const InputDecoration(labelText: "Espèce"),
                       items: especes
-                          .map((espece) =>
-                              DropdownMenuItem(value: espece, child: Text(espece)))
+                          .map((espece) => DropdownMenuItem(
+                                value: espece,
+                                child: Text(espece),
+                              ))
                           .toList(),
                       onChanged: (value) => setState(() => selectedEspece = value),
                       validator: (value) =>
                           value == null ? "Veuillez choisir une espèce" : null,
                     ),
                     const SizedBox(height: 16),
+
+                    // Sexe
                     DropdownButtonFormField<String>(
                       value: selectedSexe,
                       decoration: const InputDecoration(labelText: "Sexe"),
@@ -129,14 +156,14 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    /// Choix entre date exacte ou âge estimé
+                    // Date de naissance
                     SwitchListTile(
                       title: const Text("Connaissez-vous la date exacte ?"),
                       value: knowsExactDate,
                       onChanged: (value) {
                         setState(() {
                           knowsExactDate = value;
-                          if (!knowsExactDate) {
+                          if (!value) {
                             dateNaissanceController.clear();
                             selectedDateNaissance = null;
                           }
@@ -144,90 +171,115 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                       },
                     ),
 
-                    if (knowsExactDate) ...[
+                    if (knowsExactDate)
                       TextFormField(
                         controller: dateNaissanceController,
                         readOnly: true,
-                        decoration: const InputDecoration(labelText: "Date de naissance"),
+                        decoration:
+                            const InputDecoration(labelText: "Date de naissance"),
                         onTap: () => _selectDate(context),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Sélectionnez une date";
-                          }
-                          return null;
-                        },
-                      ),
-                    ] else ...[
-                      Row(
+                        validator: (value) =>
+                            (value == null || value.isEmpty)
+                                ? "Sélectionnez une date"
+                                : null,
+                      )
+                    else
+                      Column(
                         children: [
-                          Expanded(
-                            child: DropdownButtonFormField<int>(
-                              value: selectedAgeYears,
-                              decoration: const InputDecoration(labelText: "Années"),
-                              items: List.generate(
-                                21,
-                                (index) => DropdownMenuItem(
-                                    value: index, child: Text("$index")),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<int>(
+                                  value: selectedAgeYears,
+                                  decoration: const InputDecoration(labelText: "Années"),
+                                  items: List.generate(
+                                    21,
+                                    (index) => DropdownMenuItem(
+                                      value: index,
+                                      child: Text("$index"),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      selectedAgeYears = value!;
+                                      final date = _calculateBirthdateFromAge(
+                                        selectedAgeYears,
+                                        selectedAgeMonths,
+                                      );
+                                      dateNaissanceController.text =
+                                          "${date.day}/${date.month}/${date.year}";
+                                      selectedDateNaissance = date;
+                                    });
+                                  },
+                                ),
                               ),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedAgeYears = value!;
-                                  final date = _calculateBirthdateFromAge(
-                                      selectedAgeYears, selectedAgeMonths);
-                                  dateNaissanceController.text =
-                                      "${date.day}/${date.month}/${date.year}";
-                                  selectedDateNaissance = date;
-                                });
-                              },
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: DropdownButtonFormField<int>(
+                                  value: selectedAgeMonths,
+                                  decoration: const InputDecoration(labelText: "Mois"),
+                                  items: List.generate(
+                                    12,
+                                    (index) => DropdownMenuItem(
+                                      value: index,
+                                      child: Text("$index"),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      selectedAgeMonths = value!;
+                                      final date = _calculateBirthdateFromAge(
+                                        selectedAgeYears,
+                                        selectedAgeMonths,
+                                      );
+                                      dateNaissanceController.text =
+                                          "${date.day}/${date.month}/${date.year}";
+                                      selectedDateNaissance = date;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: DropdownButtonFormField<int>(
-                              value: selectedAgeMonths,
-                              decoration: const InputDecoration(labelText: "Mois"),
-                              items: List.generate(
-                                12,
-                                (index) => DropdownMenuItem(
-                                    value: index, child: Text("$index")),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedAgeMonths = value!;
-                                  final date = _calculateBirthdateFromAge(
-                                      selectedAgeYears, selectedAgeMonths);
-                                  dateNaissanceController.text =
-                                      "${date.day}/${date.month}/${date.year}";
-                                  selectedDateNaissance = date;
-                                });
-                              },
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: dateNaissanceController,
+                            readOnly: true,
+                            enabled: false,
+                            decoration: const InputDecoration(
+                              labelText: "Date estimée de naissance",
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: dateNaissanceController,
-                        readOnly: true,
-                        enabled: false,
-                        decoration: const InputDecoration(
-                            labelText: "Date estimée de naissance"),
-                      ),
-                    ],
 
                     const SizedBox(height: 30),
+
+                    // BOUTON "AJOUTER"
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Sauvegarder l’animal avec les infos
-                          Navigator.pop(context);
+                          try {
+                            await _saveAnimalToFirestore();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Animal ajouté avec succès')),
+                            );
+                            Navigator.pop(context);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Erreur : $e')),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         minimumSize: const Size.fromHeight(50),
                       ),
-                      child: const Text("Ajouter", style: TextStyle(fontSize: 18)),
+                      child: const Text(
+                        "Ajouter",
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
                   ],
                 ),
